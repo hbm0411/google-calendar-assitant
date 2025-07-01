@@ -16,8 +16,8 @@ pip install -r requirements.txt
 Google 서비스 계정 키 파일 경로를 .env 파일에 지정해야 합니다.
 
 ```
-GOOGLE_SERVICE_ACCOUNT_FILE=/Users/yourname/path/to/service-account.json
-RESPONSES_API_KEY=your-openai-api-key
+
+RESPONSES_API_KEY=your-openaiGOOGLE_SERVICE_ACCOUNT_FILE=/Users/yourname/path/to/service-account.json-api-key
 RESPONSES_API_URL=https://api.openai.com/v1/responses
 ```
 
