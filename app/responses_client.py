@@ -16,7 +16,7 @@ class ResponsesClient:
             'Authorization': f'Bearer {self.api_key}',
             'Content-Type': 'application/json',
         }
-        data = {
+        data = { 
             "model": "gpt-4.1",
             "input": [
                 {
@@ -46,4 +46,13 @@ class ResponsesClient:
             data["input"] = prompt
         response = requests.post(self.api_url, json=data, headers=headers)
         response.raise_for_status()
-        return response.json()
+        result = response.json()
+        # output 리스트 중 content.type이 'output_text'인 content.text만 로깅
+        output_list = result.get('output', [])
+        for output in output_list:
+            contents = output.get('content', [])
+            if isinstance(contents, list):
+                for content in contents:
+                    if content.get('type') == 'output_text':
+                        print('[응답 output_text]', content.get('text'))
+        return result
