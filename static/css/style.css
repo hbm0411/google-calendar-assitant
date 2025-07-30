@@ -601,6 +601,7 @@ body {
     padding: 0 1rem 1rem 1rem;
     border-top: 1px solid rgba(234, 199, 132, 0.3);
     overflow-y: auto;
+    color: #0B421A;
 }
 
 .tool-content.expanded::-webkit-scrollbar {
@@ -637,7 +638,6 @@ body {
 
 .tool-arguments strong,
 .tool-output strong {
-    color: #0B421A;
     font-size: 0.85rem;
     font-weight: 600;
 }

@@ -323,7 +323,15 @@ async function sendMessage(message) {
         });
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            // 응답이 JSON인지 확인
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            } else {
+                const errorText = await response.text();
+                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+            }
         }
         
         const data = await response.json();
@@ -400,6 +408,11 @@ async function sendMessage(message) {
         }
     } catch (error) {
         console.error('Error:', error);
+        console.error('Error details:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+        });
         addMessage(`서버 오류가 발생했습니다: ${error.message}`, false, true);
     }
 }

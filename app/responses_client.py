@@ -3,17 +3,37 @@ from typing import Optional, Union
 import datetime
 import json
 import logging
+from logging.handlers import RotatingFileHandler
+import os
 
-# 로깅 설정
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('responses_client.log'),
-        logging.StreamHandler()
-    ]
+# 로그 디렉토리 생성
+log_dir = 'logs'
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+
+# 로깅 설정 (로그 로테이션 및 크기 제한)
+file_handler = RotatingFileHandler(
+    os.path.join(log_dir, 'responses_client.log'),
+    maxBytes=10*1024*1024,  # 10MB
+    backupCount=5,  # 최대 5개 백업 파일
+    encoding='utf-8'
 )
+
+console_handler = logging.StreamHandler()
+
+# 로그 포맷 설정
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+console_handler.setFormatter(formatter)
+
+# 로거 설정
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
+
+# 중복 로그 방지
+logger.propagate = False
 
 class ResponsesClient:
     def __init__(self, api_key: str, api_url: str):
@@ -151,50 +171,43 @@ class ResponsesClient:
             
         # 요청 데이터 로깅
         logger.info(f"=== API 요청 데이터 ===")
-        logger.info(f"URL: {self.api_url}")
-        logger.info(f"Headers: {json.dumps(headers, indent=2, ensure_ascii=False)}")
         logger.info(f"Request Data: {json.dumps(data, indent=2, ensure_ascii=False)}")
         
         try:
             response = requests.post(self.api_url, json=data, headers=headers)
+            # # 매번 새로운 세션 생성 (세션 재사용 문제 방지)
+            # session = requests.Session()
+            # session.headers.update(headers)
+            
+            # # 연결 타임아웃 설정
+            # timeout = (10, 60)  # (연결 타임아웃, 읽기 타임아웃)
+            
+            # response = session.post(
+            #     self.api_url, 
+            #     json=data, 
+            #     timeout=timeout
+            # )
+            
+            # # 세션 명시적 종료
+            # session.close()
+            
             logger.info(f"=== API 응답 정보 ===")
             logger.info(f"상태 코드: {response.status_code}")
-            logger.info(f"응답 헤더: {dict(response.headers)}")
             
             if response.status_code != 200:
-                logger.error(f"API 오류 발생!")
-                logger.error(f"상태 코드: {response.status_code}")
-                logger.error(f"응답 내용: {response.text}")
+                logger.error(f"API 오류 발생! 상태 코드: {response.status_code}")
                 response.raise_for_status()
                 
             result = response.json()
-            logger.info(f"응답 데이터: {json.dumps(result, indent=2, ensure_ascii=False)}")
             
         except requests.exceptions.RequestException as e:
-            logger.error(f"=== API 요청 중 예외 발생 ===")
-            logger.error(f"예외 타입: {type(e).__name__}")
-            logger.error(f"예외 메시지: {str(e)}")
+            logger.error(f"API 요청 중 예외 발생: {str(e)}")
             raise
         except json.JSONDecodeError as e:
-            logger.error(f"=== JSON 파싱 오류 ===")
-            logger.error(f"응답 내용: {response.text}")
-            logger.error(f"JSON 오류: {str(e)}")
+            logger.error(f"JSON 파싱 오류: {str(e)}")
             raise
         except Exception as e:
-            logger.error(f"=== 예상치 못한 오류 ===")
-            logger.error(f"오류 타입: {type(e).__name__}")
-            logger.error(f"오류 메시지: {str(e)}")
+            logger.error(f"예상치 못한 오류: {str(e)}")
             raise
-        # output 리스트 중 content.type이 'output_text'인 content.text만 로깅
-        logger.info(f"=== 응답 내용 분석 ===")
-        output_list = result.get('output', [])
-        for i, output in enumerate(output_list):
-            logger.info(f"출력 {i+1}: {json.dumps(output, indent=2, ensure_ascii=False)}")
-            contents = output.get('content', [])
-            if isinstance(contents, list):
-                for j, content in enumerate(contents):
-                    if content.get('type') == 'output_text':
-                        logger.info(f'[응답 output_text {j+1}] {content.get("text")}')
         
-        logger.info(f"=== 요청 완료 ===")
         return result
