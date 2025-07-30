@@ -54,31 +54,44 @@ function addMessage(content, isUser = false, isError = false, toolInfo = null, r
     let currentIdInfo = '';
     
     let toolSection = '';
-    if (toolInfo) {
+    if (toolInfo && Array.isArray(toolInfo) && toolInfo.length > 0) {
         if (previousResponseId) {
             previousIdInfo += `<div class="id-info previous-id">이전 ID: ${previousResponseId}</div>`;
         }
         if (responseId) {
             currentIdInfo += `<div class="id-info current-id">현재 ID: ${responseId}</div>`;
         }
+        
+        // Tool 실행 내역 버튼과 숨겨진 tool 리스트
         toolSection = `
-            <div class="tool-info">
-                <div class="tool-header" onclick="toggleToolInfo(this)">
-                    <i class="fas fa-chevron-right"></i>
-                    <span class="tool-name">${toolInfo.name}</span>
-                    <span class="tool-toggle">클릭하여 상세보기</span>
-                </div>
-                <div class="tool-content">
-                    <div class="tool-details">
-                        <div class="tool-arguments">
-                            <strong>Arguments:</strong>
-                            <pre>${JSON.stringify(JSON.parse(toolInfo.arguments), null, 2)}</pre>
+            <div class="tool-execution-section">
+                <button class="tool-toggle-button" onclick="toggleToolList(this)">
+                    <i class="fas fa-tools"></i>
+                    <span>Tool 실행 내역 보기 (${toolInfo.length}개)</span>
+                    <i class="fas fa-external-link-alt"></i>
+                </button>
+                <div class="tool-list" style="display: none;">
+                    ${toolInfo.map((tool, index) => `
+                        <div class="tool-info">
+                            <div class="tool-header" onclick="toggleToolInfo(this)">
+                                <i class="fas fa-chevron-right"></i>
+                                <span class="tool-name">${tool.title}</span>
+                                <span class="tool-toggle">클릭하여 상세보기</span>
+                            </div>
+                            <div class="tool-content">
+                                <div class="tool-details">
+                                    <div class="tool-arguments">
+                                        <strong>Arguments:</strong>
+                                        <pre>${JSON.stringify(JSON.parse(tool.arguments), null, 2)}</pre>
+                                    </div>
+                                    <div class="tool-output">
+                                        <strong>Output:</strong>
+                                        <pre>${JSON.stringify(JSON.parse(tool.output), null, 2)}</pre>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="tool-output">
-                            <strong>Output:</strong>
-                            <pre>${JSON.stringify(JSON.parse(toolInfo.output), null, 2)}</pre>
-                        </div>
-                    </div>
+                    `).join('')}
                 </div>
             </div>
         `;
@@ -143,6 +156,39 @@ function toggleToolInfo(headerElement) {
         toggleText.textContent = '클릭하여 접기';
     }
 }
+
+// Tool 리스트 토글 함수 (모달로 변경)
+function toggleToolList(buttonElement) {
+    const toolSection = buttonElement.parentElement;
+    const toolList = toolSection.querySelector('.tool-list');
+    
+    // 모달에 tool 리스트 내용 복사
+    const modalBody = document.getElementById('toolModalBody');
+    modalBody.innerHTML = toolList.innerHTML;
+    
+    // 모달 표시
+    document.getElementById('toolModal').style.display = 'flex';
+}
+
+// 모달 닫기 함수
+function closeToolModal() {
+    document.getElementById('toolModal').style.display = 'none';
+}
+
+// 모달 외부 클릭 시 닫기
+document.addEventListener('click', (e) => {
+    const modal = document.getElementById('toolModal');
+    if (e.target === modal) {
+        closeToolModal();
+    }
+});
+
+// ESC 키로 모달 닫기
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeToolModal();
+    }
+});
 
 // 로딩 상태를 토글하는 함수
 function toggleLoading(show) {
@@ -285,21 +331,19 @@ async function sendMessage(message) {
         if (data.success) {
             // AI 응답 처리
             let responseText = '응답을 받았습니다.';
-            let toolInfo = null;
+            let toolInfoList = [];
             let newResponseId = null;
+            
+            // 이미지 업로드 정보 추가
+            if (data.image_upload_info) {
+                toolInfoList.push(data.image_upload_info);
+            }
             
             if (data.response && data.response.output) {
                 const outputs = data.response.output;
                 
-                // Tool 호출 정보 찾기
-                const toolCall = outputs.find(output => output.type === 'mcp_call');
-                if (toolCall) {
-                    toolInfo = {
-                        name: toolCall.name,
-                        arguments: toolCall.arguments,
-                        output: toolCall.output
-                    };
-                }
+                // 모든 Tool 호출 정보 찾기
+                const toolCalls = outputs.filter(output => output.type === 'mcp_call');
                 
                 // LLM 응답 텍스트 찾기
                 const messageOutput = outputs.find(output => output.type === 'message');
@@ -315,6 +359,19 @@ async function sendMessage(message) {
                     newResponseId = data.response.id;
                     currentResponseId = newResponseId;
                 }
+                
+                // Tool 정보를 응답 메시지에 포함
+                const responseToolInfoList = toolCalls.map((toolCall, index) => ({
+                    name: toolCall.name,
+                    arguments: toolCall.arguments,
+                    output: toolCall.output,
+                    title: toolCalls.length > 1 
+                        ? `Tool 실행 ${index + 1}: ${toolCall.name}` 
+                        : `Tool 실행: ${toolCall.name}`
+                }));
+                
+                // 이미지 업로드 정보와 응답 tool 정보 합치기
+                toolInfoList = toolInfoList.concat(responseToolInfoList);
             } else if (data.response && data.response.choices && data.response.choices.length > 0) {
                 const choice = data.response.choices[0];
                 if (choice.message && choice.message.content) {
@@ -328,15 +385,18 @@ async function sendMessage(message) {
                 responseText = data.response;
             }
             
-            // Tool 정보가 있으면 별도 메시지로 표시
-            if (toolInfo) {
-                addMessage(`Tool 실행: ${toolInfo.name}`, false, false, toolInfo, newResponseId, currentResponseId);
-            }
-            
-            // LLM 응답을 별도 메시지로 표시
-            addMessage(responseText, false, false, null, newResponseId, currentResponseId);
+            // LLM 응답을 별도 메시지로 표시 (tool 정보 포함)
+            addMessage(responseText, false, false, toolInfoList, newResponseId, currentResponseId);
         } else {
-            addMessage(`오류가 발생했습니다: ${data.error}`, false, true);
+            // 에러 처리
+            if (data.image_upload_failed) {
+                // 이미지 업로드 실패 시 특별한 에러 메시지와 tool 정보 포함
+                const toolInfoList = data.image_upload_info ? [data.image_upload_info] : [];
+                addMessage(`❌ ${data.error}<br><br>이미지 없이 텍스트만으로 다시 시도해주세요.`, false, true, toolInfoList);
+            } else {
+                // 일반 에러
+                addMessage(`오류가 발생했습니다: ${data.error}`, false, true);
+            }
         }
     } catch (error) {
         console.error('Error:', error);

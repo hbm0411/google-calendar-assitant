@@ -49,17 +49,61 @@ async def send_message(
         if previous_response_id:
             current_previous_response_id = previous_response_id
         
-        # 이미지가 있는 경우 OpenAI Files API로 업로드
+        # 이미지 업로드 정보 수집
+        image_upload_info = None
         file_id = None
+        image_upload_error = None
+        
         if image:
             print(f"이미지 업로드 시작: {image.filename}")
             try:
                 file_id = await upload_image_to_openai(image)
                 print(f"이미지 업로드 완료, file_id: {file_id}")
+                
+                # 이미지 업로드 성공 정보
+                image_upload_info = {
+                    "name": "openai_files_upload",
+                    "arguments": json.dumps({
+                        "filename": image.filename,
+                        "content_type": image.content_type,
+                        "file_size": "uploaded"
+                    }, ensure_ascii=False),
+                    "output": json.dumps({
+                        "file_id": file_id,
+                        "status": "success"
+                    }, ensure_ascii=False),
+                    "title": "이미지 업로드: OpenAI Files API"
+                }
+                
             except Exception as e:
-                print(f"이미지 업로드 실패: {str(e)}")
-                # 이미지 업로드 실패 시 텍스트만으로 진행
-                file_id = None
+                error_msg = f"이미지 업로드 실패: {str(e)}"
+                print(error_msg)
+                image_upload_error = error_msg
+                
+                # 이미지 업로드 실패 정보
+                image_upload_info = {
+                    "name": "openai_files_upload",
+                    "arguments": json.dumps({
+                        "filename": image.filename,
+                        "content_type": image.content_type,
+                        "file_size": "uploaded"
+                    }, ensure_ascii=False),
+                    "output": json.dumps({
+                        "error": str(e),
+                        "status": "failed"
+                    }, ensure_ascii=False),
+                    "title": "이미지 업로드: OpenAI Files API (실패)"
+                }
+        
+        # 이미지 업로드 실패 시 에러 응답 반환
+        if image_upload_error:
+            return {
+                "success": False,
+                "error": image_upload_error,
+                "message": message,
+                "image_upload_failed": True,
+                "image_upload_info": image_upload_info
+            }
         
         # Responses API 호출
         response = responses_client.send_request(
@@ -76,7 +120,8 @@ async def send_message(
         return {
             "success": True,
             "response": response,
-            "message": message
+            "message": message,
+            "image_upload_info": image_upload_info
         }
     except Exception as e:
         return {

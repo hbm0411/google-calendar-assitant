@@ -60,7 +60,6 @@
                             id="messageInput" 
                             placeholder="메시지를 입력하세요... (이미지 붙여넣기: Ctrl+V, 드래그 앤 드롭 가능, 줄바꿈: Cmd+Enter 또는 Shift+Enter)" 
                             autocomplete="off"
-                            required
                             rows="1"
                         ></textarea>
                         <button type="button" id="imageButton" class="image-button" title="이미지 추가">
@@ -88,6 +87,21 @@
                 <span></span>
             </div>
             <p>AI가 응답을 생성하고 있습니다...</p>
+        </div>
+    </div>
+
+    <!-- Tool 실행 내역 모달 -->
+    <div id="toolModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Tool 실행 내역</h3>
+                <button class="modal-close" onclick="closeToolModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="toolModalBody">
+                <!-- Tool 리스트가 여기에 동적으로 추가됩니다 -->
+            </div>
         </div>
     </div>
 
