@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, UploadFile, File
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
@@ -7,6 +7,7 @@ from .session_manager import SessionManager
 import datetime
 import os
 import json
+import requests
 from typing import Optional
 
 app = FastAPI(title="Google Calendar Assistant", version="1.0.0")
@@ -16,11 +17,11 @@ templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # 환경 변수에서 API 키/URL 로드
-RESPONSES_API_KEY = os.getenv('RESPONSES_API_KEY', 'your-api-key')
+OPEN_API_KEY = os.getenv('RESPONSES_API_KEY', 'your-api-key')
 RESPONSES_API_URL = os.getenv('RESPONSES_API_URL', 'https://api.openai.com/v1/responses')
 
 # 인스턴스 생성
-responses_client = ResponsesClient(RESPONSES_API_KEY, RESPONSES_API_URL)
+responses_client = ResponsesClient(OPEN_API_KEY, RESPONSES_API_URL)
 session_manager = SessionManager()
 
 @app.get("/", response_class=HTMLResponse)
@@ -29,16 +30,42 @@ async def chat_page(request: Request):
     return templates.TemplateResponse("chat.html", {"request": request})
 
 @app.post("/send_message")
-async def send_message(message: str = Form(...), user_id: str = Form("test_user")):
+async def send_message(
+    message: str = Form(...), 
+    user_id: str = Form("test_user"),
+    image: Optional[UploadFile] = File(None),
+    previous_response_id: Optional[str] = Form(None)
+):
     """사용자 메시지를 받아서 응답을 반환합니다."""
     try:
+        print(f"=== 서버에서 메시지 수신 ===")
+        print(f"메시지: {message}")
+        print(f"이미지: {image}")
+        print(f"이미지 파일명: {image.filename if image else 'None'}")
+        print(f"이미지 타입: {image.content_type if image else 'None'}")
+        
         # 이전 response_id 조회
-        previous_response_id = session_manager.get_previous_response_id(user_id)
+        current_previous_response_id = session_manager.get_previous_response_id(user_id)
+        if previous_response_id:
+            current_previous_response_id = previous_response_id
+        
+        # 이미지가 있는 경우 OpenAI Files API로 업로드
+        file_id = None
+        if image:
+            print(f"이미지 업로드 시작: {image.filename}")
+            try:
+                file_id = await upload_image_to_openai(image)
+                print(f"이미지 업로드 완료, file_id: {file_id}")
+            except Exception as e:
+                print(f"이미지 업로드 실패: {str(e)}")
+                # 이미지 업로드 실패 시 텍스트만으로 진행
+                file_id = None
         
         # Responses API 호출
         response = responses_client.send_request(
             message=message,
-            previous_response_id=previous_response_id
+            previous_response_id=current_previous_response_id,
+            file_id=file_id
         )
         
         # 응답에서 response_id 추출 및 세션에 저장
@@ -57,6 +84,34 @@ async def send_message(message: str = Form(...), user_id: str = Form("test_user"
             "error": str(e),
             "message": message
         }
+
+async def upload_image_to_openai(image: UploadFile) -> str:
+    """이미지를 OpenAI Files API로 업로드합니다."""
+    try:
+        # 파일 업로드
+        files = {
+            'file': (image.filename, image.file, image.content_type),
+            'purpose': (None, 'vision')
+        }
+        
+        headers = {
+            'Authorization': f'Bearer {OPEN_API_KEY}'
+        }
+        
+        response = requests.post(
+            'https://api.openai.com/v1/files',
+            files=files,
+            headers=headers
+        )
+        
+        if response.status_code != 200:
+            raise Exception(f"OpenAI Files API 오류: {response.status_code} - {response.text}")
+        
+        result = response.json()
+        return result['id']
+        
+    except Exception as e:
+        raise Exception(f"이미지 업로드 실패: {str(e)}")
 
 @app.get("/health")
 async def health_check():

@@ -374,6 +374,12 @@ body {
     box-shadow: 0 0 0 3px rgba(234, 199, 132, 0.2);
 }
 
+#messageInput.dragover {
+    border-color: #EAC784;
+    background-color: rgba(234, 199, 132, 0.1);
+    box-shadow: 0 0 0 3px rgba(234, 199, 132, 0.3);
+}
+
 #messageInput::placeholder {
     color: #604c4c;
 }
@@ -705,4 +711,90 @@ body {
     background: rgba(255, 255, 255, 0.2);
     color: rgba(255, 255, 255, 1);
     border-left-color: rgba(255, 255, 255, 0.6);
+}
+
+/* 이미지 업로드 관련 스타일 */
+.image-button {
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 50%;
+    background: #8B4513;
+    color: #EAC784;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    margin-right: 8px;
+}
+
+.image-button:hover {
+    background: #A0522D;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.image-button:active {
+    transform: translateY(0);
+}
+
+.image-preview {
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(234, 199, 132, 0.1);
+    border-radius: 12px;
+    border: 2px dashed #EAC784;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-preview img {
+    max-width: 200px;
+    max-height: 150px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.remove-image {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #DC3545;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.remove-image:hover {
+    background: #C82333;
+    transform: scale(1.1);
+}
+
+/* 붙여넣기 안내 메시지 스타일 */
+.message.assistant .message-text:has(+ .paste-notice) {
+    border-bottom: 1px solid rgba(234, 199, 132, 0.3);
+    margin-bottom: 8px;
+}
+
+.paste-notice {
+    font-size: 0.85rem;
+    color: #EAC784;
+    background: rgba(234, 199, 132, 0.1);
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-top: 8px;
+    border-left: 3px solid #EAC784;
 } 

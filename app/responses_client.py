@@ -24,12 +24,14 @@ class ResponsesClient:
         self,
         message: Union[str, list],
         previous_response_id: Optional[str] = None,
-        approval_request_id: Optional[str] = None
+        approval_request_id: Optional[str] = None,
+        file_id: Optional[str] = None
     ) -> dict:
         logger.info(f"=== 새로운 요청 시작 ===")
         logger.info(f"메시지: {message}")
         logger.info(f"이전 응답 ID: {previous_response_id}")
         logger.info(f"승인 요청 ID: {approval_request_id}")
+        logger.info(f"파일 ID: {file_id}")
         
         # 오늘 날짜 가져오기
         today = datetime.datetime.now().strftime("%Y년 %m월 %d일")
@@ -37,14 +39,20 @@ class ResponsesClient:
             'Authorization': f'Bearer {self.api_key}',
             'Content-Type': 'application/json',
         }
+        
+        # 사용자 메시지 구성
+        user_content = message
+        if file_id:
+            # 이미지가 있는 경우 content 배열로 구성
+            user_content = [
+                {"type": "input_text", "text": message},
+                {"type": "input_image", "file_id": file_id}
+            ]
+        
         data = { 
             "model": "gpt-4.1",
-            "store": "true",
-            "truncation_strategy": {
-                "type": "auto"  #컨텍스트 윈도우 초과 시 중간 메시지 제거. "disabled" 일 경우 초과 시 오류 발생
-            },
-            "max_prompt_tokens": 20000,
-            "max_completion_tokens": 512,
+            "truncation": "auto",
+            "max_output_tokens": 2000,
             "input": [
                 {
                     "role": "developer",
@@ -81,12 +89,33 @@ class ResponsesClient:
 - 스타벅스 파트너에게 친근하고 전문적인 톤으로 대화
 - 오류 발생 시 사용자에게 명확히 안내
 - 일정 조회 시 markdown 표 형식으로 응답
+- 이미지가 포함된 경우 이미지에서 근무 일정 정보를 추출하여 처리
+
+## 일정 조회 규칙:
+- 일정 조회 시 max_results는 최소 10개 이상으로 설정 (기본값: 10)
+- 날짜 범위는 사용자 요청에 따라 적절히 설정:
+  * "오늘 일정" → 오늘 00:00 ~ 23:59
+  * "내일 일정" → 내일 00:00 ~ 23:59  
+  * "이번 주 일정" → 이번 주 월요일 00:00 ~ 일요일 23:59
+  * "다음 주 일정" → 다음 주 월요일 00:00 ~ 일요일 23:59
+  * "이번 달 일정" → 이번 달 1일 00:00 ~ 말일 23:59
+  * 구체적인 날짜 요청 시 → 해당 날짜 00:00 ~ 23:59
+- 조회 결과가 없을 경우 "해당 기간에 등록된 일정이 없습니다"라고 안내
+- 조회 결과가 있을 경우 markdown 표로 정리하여 응답
+
+## 이전 발화 참조 처리:
+- 사용자가 "조금 전에 추가한 일정", "직전에 얘기한 일정", "방금 추가한 일정" 등 이전 발화를 참조하는 경우:
+  * 이전 대화에서 추가된 일정의 날짜를 파악하여 해당 날짜로 조회
+  * 예: "조금 전에 추가한 일정 보여줘" → 이전에 추가한 일정의 날짜로 조회
+  * 예: "직전에 얘기한 일정 정보 알려줘" → 이전 대화에서 언급된 날짜로 조회
+  * 이전 발화에서 명확한 날짜를 찾을 수 없는 경우, 오늘 날짜로 조회
+- 이전 발화 참조 시에도 max_results는 10개 이상으로 설정하여 충분한 결과 확인
 
 오늘은 {today}입니다."""
                 },
                 {
                     "role": "user",
-                    "content": message,
+                    "content": user_content,
                 },
             ],
             "tools": [{

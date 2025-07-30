@@ -4,6 +4,14 @@ const messageForm = document.getElementById('messageForm');
 const messageInput = document.getElementById('messageInput');
 const sendButton = document.getElementById('sendButton');
 const loadingIndicator = document.getElementById('loadingIndicator');
+const imageButton = document.getElementById('imageButton');
+const imageInput = document.getElementById('imageInput');
+const imagePreview = document.getElementById('imagePreview');
+const previewImage = document.getElementById('previewImage');
+const removeImage = document.getElementById('removeImage');
+
+// 전역 변수로 선택된 이미지 파일 추적
+let selectedImageFile = null;
 
 // 현재 시간을 포맷팅하는 함수
 function formatTime() {
@@ -135,12 +143,134 @@ function toggleLoading(show) {
 // 전역 변수로 response_id 추적
 let currentResponseId = null;
 
+// 이미지 선택 이벤트 핸들러
+imageButton.addEventListener('click', () => {
+    imageInput.click();
+});
+
+// 이미지 파일 선택 시 처리
+imageInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    console.log('이미지 파일 선택:', file);
+    if (file) {
+        if (file.type.startsWith('image/')) {
+            selectedImageFile = file;
+            console.log('이미지 파일 설정됨:', file.name, file.type, file.size);
+            showImagePreview(file);
+        } else {
+            alert('이미지 파일만 선택할 수 있습니다.');
+        }
+    }
+});
+
+// 이미지 미리보기 표시
+function showImagePreview(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        previewImage.src = e.target.result;
+        imagePreview.style.display = 'flex';
+    };
+    reader.readAsDataURL(file);
+}
+
+// 이미지 제거
+removeImage.addEventListener('click', () => {
+    selectedImageFile = null;
+    imagePreview.style.display = 'none';
+    imageInput.value = '';
+    previewImage.src = '';
+});
+
+// 이미지 붙여넣기 이벤트 핸들러
+document.addEventListener('paste', (e) => {
+    const items = e.clipboardData.items;
+    
+    for (let item of items) {
+        if (item.type.startsWith('image/')) {
+            e.preventDefault();
+            const file = item.getAsFile();
+            if (file) {
+                selectedImageFile = file;
+                showImagePreview(file);
+            }
+            break;
+        }
+    }
+});
+
+// 입력창에서 이미지 붙여넣기 처리
+messageInput.addEventListener('paste', (e) => {
+    console.log('붙여넣기 이벤트 발생');
+    const items = e.clipboardData.items;
+    console.log('클립보드 아이템들:', items);
+    
+    for (let item of items) {
+        console.log('클립보드 아이템:', item.type);
+        if (item.type.startsWith('image/')) {
+            e.preventDefault();
+            const file = item.getAsFile();
+            console.log('이미지 파일 추출:', file);
+            if (file) {
+                selectedImageFile = file;
+                console.log('이미지 파일 설정됨 (붙여넣기):', file.name, file.type, file.size);
+                showImagePreview(file);
+                // 이미지가 붙여넣어졌음을 사용자에게 알림
+                addMessage('✅ 이미지가 붙여넣어졌습니다! 이제 메시지를 입력하고 전송하세요.', false);
+            }
+            break;
+        }
+    }
+});
+
+// 드래그 앤 드롭 이벤트 핸들러
+messageInput.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    messageInput.classList.add('dragover');
+});
+
+messageInput.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    messageInput.classList.remove('dragover');
+});
+
+messageInput.addEventListener('drop', (e) => {
+    e.preventDefault();
+    messageInput.classList.remove('dragover');
+    
+    const files = e.dataTransfer.files;
+    console.log('드롭된 파일들:', files);
+    if (files.length > 0) {
+        const file = files[0];
+        console.log('드롭된 파일:', file.name, file.type, file.size);
+        if (file.type.startsWith('image/')) {
+            selectedImageFile = file;
+            console.log('이미지 파일 설정됨 (드롭):', file.name, file.type, file.size);
+            showImagePreview(file);
+            addMessage('✅ 이미지가 드롭되었습니다! 이제 메시지를 입력하고 전송하세요.', false);
+        } else {
+            addMessage('❌ 이미지 파일만 업로드할 수 있습니다.', false, true);
+        }
+    }
+});
+
 // API 요청을 보내는 함수
 async function sendMessage(message) {
     try {
+        console.log('=== sendMessage 시작 ===');
+        console.log('메시지:', message);
+        console.log('selectedImageFile:', selectedImageFile);
+        
         const formData = new FormData();
         formData.append('message', message);
         formData.append('user_id', 'test_user');
+        
+        // 이미지가 있으면 추가
+        if (selectedImageFile) {
+            console.log('이미지 파일 추가:', selectedImageFile.name, selectedImageFile.type, selectedImageFile.size);
+            formData.append('image', selectedImageFile);
+        } else {
+            console.log('이미지 파일이 없습니다.');
+        }
         
         // 이전 response_id가 있으면 추가
         if (currentResponseId) {
@@ -241,6 +371,15 @@ messageForm.addEventListener('submit', async (e) => {
     } finally {
         // 로딩 상태 종료
         toggleLoading(false);
+        
+        // 메시지 전송 후 이미지 초기화
+        if (selectedImageFile) {
+            selectedImageFile = null;
+            imagePreview.style.display = 'none';
+            imageInput.value = '';
+            previewImage.src = '';
+        }
+        
         messageInput.focus();
     }
 });
