@@ -42,7 +42,7 @@ function parseMarkdown(text) {
 }
 
 // 메시지를 채팅창에 추가하는 함수
-function addMessage(content, isUser = false, isError = false, toolInfo = null, responseId = null, previousResponseId = null) {
+function addMessage(content, isUser = false, isError = false, toolInfo = null, responseId = null, previousResponseId = null, attachedImage = null) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
     if (isError) messageDiv.classList.add('error');
@@ -84,6 +84,16 @@ function addMessage(content, isUser = false, isError = false, toolInfo = null, r
         `;
     }
     
+    // 첨부된 이미지 표시
+    let attachedImageSection = '';
+    if (attachedImage && isUser) {
+        attachedImageSection = `
+            <div class="attached-image">
+                <img src="${attachedImage}" alt="첨부된 이미지" class="message-attached-image">
+            </div>
+        `;
+    }
+    
     // Assistant 메시지인 경우 Markdown 파싱
     const processedContent = isUser ? content : parseMarkdown(content);
     const messageTextClass = isUser ? 'message-text' : 'message-text markdown-content';
@@ -99,6 +109,7 @@ function addMessage(content, isUser = false, isError = false, toolInfo = null, r
         <div class="message-content">
             ${previousIdInfo}
             <div class="${messageTextClass}">${processedContent}</div>
+            ${attachedImageSection}
             ${toolSection}
             ${currentIdInfo}
             <div class="message-time">${formatTime()}</div>
@@ -151,11 +162,9 @@ imageButton.addEventListener('click', () => {
 // 이미지 파일 선택 시 처리
 imageInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
-    console.log('이미지 파일 선택:', file);
     if (file) {
         if (file.type.startsWith('image/')) {
             selectedImageFile = file;
-            console.log('이미지 파일 설정됨:', file.name, file.type, file.size);
             showImagePreview(file);
         } else {
             alert('이미지 파일만 선택할 수 있습니다.');
@@ -200,19 +209,14 @@ document.addEventListener('paste', (e) => {
 
 // 입력창에서 이미지 붙여넣기 처리
 messageInput.addEventListener('paste', (e) => {
-    console.log('붙여넣기 이벤트 발생');
     const items = e.clipboardData.items;
-    console.log('클립보드 아이템들:', items);
     
     for (let item of items) {
-        console.log('클립보드 아이템:', item.type);
         if (item.type.startsWith('image/')) {
             e.preventDefault();
             const file = item.getAsFile();
-            console.log('이미지 파일 추출:', file);
             if (file) {
                 selectedImageFile = file;
-                console.log('이미지 파일 설정됨 (붙여넣기):', file.name, file.type, file.size);
                 showImagePreview(file);
                 // 이미지가 붙여넣어졌음을 사용자에게 알림
                 addMessage('✅ 이미지가 붙여넣어졌습니다! 이제 메시지를 입력하고 전송하세요.', false);
@@ -238,13 +242,10 @@ messageInput.addEventListener('drop', (e) => {
     messageInput.classList.remove('dragover');
     
     const files = e.dataTransfer.files;
-    console.log('드롭된 파일들:', files);
     if (files.length > 0) {
         const file = files[0];
-        console.log('드롭된 파일:', file.name, file.type, file.size);
         if (file.type.startsWith('image/')) {
             selectedImageFile = file;
-            console.log('이미지 파일 설정됨 (드롭):', file.name, file.type, file.size);
             showImagePreview(file);
             addMessage('✅ 이미지가 드롭되었습니다! 이제 메시지를 입력하고 전송하세요.', false);
         } else {
@@ -256,20 +257,13 @@ messageInput.addEventListener('drop', (e) => {
 // API 요청을 보내는 함수
 async function sendMessage(message) {
     try {
-        console.log('=== sendMessage 시작 ===');
-        console.log('메시지:', message);
-        console.log('selectedImageFile:', selectedImageFile);
-        
         const formData = new FormData();
         formData.append('message', message);
         formData.append('user_id', 'test_user');
         
         // 이미지가 있으면 추가
         if (selectedImageFile) {
-            console.log('이미지 파일 추가:', selectedImageFile.name, selectedImageFile.type, selectedImageFile.size);
             formData.append('image', selectedImageFile);
-        } else {
-            console.log('이미지 파일이 없습니다.');
         }
         
         // 이전 response_id가 있으면 추가
@@ -355,10 +349,22 @@ messageForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const message = messageInput.value.trim();
-    if (!message) return;
     
-    // 사용자 메시지 추가
-    addMessage(message, true);
+    // 메시지가 없고 이미지도 없는 경우 전송하지 않음
+    if (!message && !selectedImageFile) return;
+    
+    // 첨부된 이미지 URL 생성
+    let attachedImageUrl = null;
+    if (selectedImageFile) {
+        attachedImageUrl = URL.createObjectURL(selectedImageFile);
+    }
+    
+    // 사용자 메시지 추가 (이미지만 있는 경우 안내 메시지 표시)
+    if (message) {
+        addMessage(message, true, false, null, null, null, attachedImageUrl);
+    } else {
+        addMessage('이미지를 분석하여 일정을 추가해주세요.', true, false, null, null, null, attachedImageUrl);
+    }
     
     // 입력창 초기화
     messageInput.value = '';
@@ -367,7 +373,7 @@ messageForm.addEventListener('submit', async (e) => {
     toggleLoading(true);
     
     try {
-        await sendMessage(message);
+        await sendMessage(message || '이미지를 분석하여 일정을 추가해주세요.');
     } finally {
         // 로딩 상태 종료
         toggleLoading(false);
@@ -384,9 +390,31 @@ messageForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Enter 키 이벤트 처리 (Shift+Enter로 줄바꿈)
+// Enter 키 이벤트 처리 (Cmd+Enter로 줄바꿈)
 messageInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter') {
+        // Cmd+Enter (Mac) 또는 Ctrl+Enter (Windows/Linux)로 줄바꿈
+        if (e.metaKey || e.ctrlKey) {
+            e.preventDefault();
+            
+            // 현재 커서 위치에 줄바꿈 추가
+            const start = messageInput.selectionStart;
+            const end = messageInput.selectionEnd;
+            const value = messageInput.value;
+            
+            messageInput.value = value.substring(0, start) + '\n' + value.substring(end);
+            messageInput.selectionStart = messageInput.selectionEnd = start + 1;
+            
+            // 자동 크기 조절 트리거
+            messageInput.dispatchEvent(new Event('input'));
+            return;
+        }
+        // Shift+Enter로 줄바꿈
+        if (e.shiftKey) {
+            // 줄바꿈 허용 (기본 동작)
+            return;
+        }
+        // 일반 Enter로 전송
         e.preventDefault();
         messageForm.dispatchEvent(new Event('submit'));
     }
@@ -395,7 +423,8 @@ messageInput.addEventListener('keydown', (e) => {
 // 입력창 자동 크기 조절
 messageInput.addEventListener('input', () => {
     messageInput.style.height = 'auto';
-    messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+    const newHeight = Math.min(messageInput.scrollHeight, 120);
+    messageInput.style.height = newHeight + 'px';
 });
 
 // 페이지 로드 시 초기화

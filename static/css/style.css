@@ -367,6 +367,12 @@ body {
     background: rgba(255, 252, 252, 0.95);
     color: #362415;
     backdrop-filter: blur(5px);
+    resize: none;
+    min-height: 48px;
+    max-height: 120px;
+    overflow-y: auto;
+    line-height: 1.4;
+    font-family: inherit;
 }
 
 #messageInput:focus {
@@ -781,6 +787,32 @@ body {
 .remove-image:hover {
     background: #C82333;
     transform: scale(1.1);
+}
+
+/* 메시지에 첨부된 이미지 스타일 */
+.attached-image {
+    margin-top: 8px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(234, 199, 132, 0.3);
+}
+
+.message-attached-image {
+    max-width: 200px;
+    max-height: 150px;
+    width: auto;
+    height: auto;
+    object-fit: cover;
+    display: block;
+}
+
+/* 사용자 메시지의 첨부 이미지 스타일 */
+.message.user .attached-image {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.message.user .message-attached-image {
+    border-radius: 6px;
 }
 
 /* 붙여넣기 안내 메시지 스타일 */
