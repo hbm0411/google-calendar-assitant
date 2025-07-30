@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스타벅스 근무 일정 관리</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', path='/css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <i class="fas fa-coffee"></i>
+                <h1>스타벅스 근무 일정 관리</h1>
+                <p>AI와 대화하며 스타벅스 근무 일정을 관리하세요</p>
+            </div>
+        </header>
+
+        <main class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message assistant">
+                    <div class="message-avatar">
+                        <img src="{{ url_for('static', path='/images/logo.png') }}" alt="AI 비서" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <i class="fas fa-robot" style="display: none;"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-text">
+                            안녕하세요! 스타벅스 근무 일정 관리 비서입니다. 
+                            근무 일정을 구글 캘린더에 자동으로 관리해드립니다.
+                            <br><br>
+                            <strong>사용 예시:</strong><br>
+                            • "내일 오전 7시에 근무 일정 추가해줘" → "오픈"으로 자동 설정<br>
+                            • "다음 주 월요일 오후 2시 근무" → "마감"으로 자동 설정<br>
+                            • "오늘 일정 보여줘"
+                        </div>
+                        <div class="message-time" id="welcomeTime"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <form id="messageForm" class="message-form">
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            id="messageInput" 
+                            placeholder="메시지를 입력하세요..." 
+                            autocomplete="off"
+                            required
+                        >
+                        <button type="submit" id="sendButton">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+
+        <div class="loading-indicator" id="loadingIndicator" style="display: none;">
+            <div class="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <p>AI가 응답을 생성하고 있습니다...</p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', path='/js/chat.js') }}"></script>
+</body>
+</html> 

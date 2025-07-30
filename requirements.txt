@@ -4,3 +4,5 @@ pydantic
 requests
 python-dotenv 
 fastmcp
+jinja2
+python-multipart

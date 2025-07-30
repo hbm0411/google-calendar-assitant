@@ -1,5 +1,19 @@
 import requests
 from typing import Optional, Union
+import datetime
+import json
+import logging
+
+# 로깅 설정
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('responses_client.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 class ResponsesClient:
     def __init__(self, api_key: str, api_url: str):
@@ -8,10 +22,17 @@ class ResponsesClient:
 
     def send_request(
         self,
-        prompt: Union[str, list],
+        message: Union[str, list],
         previous_response_id: Optional[str] = None,
         approval_request_id: Optional[str] = None
     ) -> dict:
+        logger.info(f"=== 새로운 요청 시작 ===")
+        logger.info(f"메시지: {message}")
+        logger.info(f"이전 응답 ID: {previous_response_id}")
+        logger.info(f"승인 요청 ID: {approval_request_id}")
+        
+        # 오늘 날짜 가져오기
+        today = datetime.datetime.now().strftime("%Y년 %m월 %d일")
         headers = {
             'Authorization': f'Bearer {self.api_key}',
             'Content-Type': 'application/json',
@@ -21,17 +42,50 @@ class ResponsesClient:
             "input": [
                 {
                     "role": "developer",
-                    "content": "You are a helpful assistant that can help with tasks related to Google Calendar."
+                    "content": f"""당신은 스타벅스 매장의 근무 일정을 관리하는 AI 비서입니다.
+스타벅스 파트너가 입력한 근무 일정을 구글 캘린더에 입력할 수 있도록 해야합니다.
+
+## 구글 캘린더 설정:
+- 캘린더 ID: "bog3g93erjt6fqp52njd88ekro@group.calendar.google.com"
+- 모든 일정은 이 캘린더에 추가/수정/삭제됩니다.
+
+## 일정 이름 규칙:
+- 일정이 6시 ~ 8시59분 사이인 경우 일정 이름을 "오픈"으로 설정
+- 일정이 9시 ~ 13시 사이인 경우 일정 이름을 "미들"로 설정  
+- 일정이 13시 이후인 경우 일정 이름을 "마감"으로 설정
+- 시간대신 "정규휴일"이 입력된 경우 일정 이름을 "휴일"로 설정하고 하루종일로 설정
+
+## 일정 입력 규칙:
+- 일정을 추가할 때는 이름, 날짜, 시간만 입력
+- 위치(location)와 비고(description)는 입력하지 않음
+- 구글 캘린더 도구 사용 시 location과 description 필드는 빈 문자열("")로 설정 (null 대신)
+- "정규휴일" 입력 시 시간 없이 하루종일(all-day) 이벤트로 설정
+
+## 주요 역할:
+1. 스타벅스 파트너가 입력한 근무 일정을 지정된 구글 캘린더에 자동으로 추가
+2. 시간대에 따라 적절한 일정 이름("오픈", "미들", "마감") 자동 설정
+3. 근무 일정 조회, 수정, 삭제 요청 처리
+4. 스타벅스 매장의 효율적인 근무 일정 관리 지원
+
+## 응답 방식:
+- 사용자의 요청을 정확히 이해하고 구글 캘린더 도구를 사용하여 처리
+- 근무 일정 추가 시 시간대에 맞는 이름을 자동으로 설정
+- 일정 추가 시 이름, 날짜, 시간만 입력하고 위치와 비고는 제외
+- 명확하고 친근한 한국어로 응답
+- 스타벅스 파트너에게 친근하고 전문적인 톤으로 대화
+- 오류 발생 시 사용자에게 명확히 안내
+
+오늘은 {today}입니다."""
                 },
                 {
                     "role": "user",
-                    "content": prompt,
+                    "content": message,
                 },
             ],
             "tools": [{
                 "type": "mcp",
                 "server_label": "google_calendar",
-                "server_url": "https://gcalendar-mcp-server.klavis.ai/mcp/?instance_id=2ed548b8-080a-4c26-aaae-a0ec7dc5b567",
+                "server_url": "https://gcalendar-mcp-server.klavis.ai/mcp/?instance_id=5da0238c-d022-45e4-bdd3-e202fe385f69",
                 "require_approval": "never"
             }],
         }
@@ -42,17 +96,55 @@ class ResponsesClient:
                 "approve": True,
                 "approval_request_id": approval_request_id
             }]
-        else:
-            data["input"] = prompt
-        response = requests.post(self.api_url, json=data, headers=headers)
-        response.raise_for_status()
-        result = response.json()
+        elif previous_response_id:
+            data["previous_response_id"] = previous_response_id
+            
+        # 요청 데이터 로깅
+        logger.info(f"=== API 요청 데이터 ===")
+        logger.info(f"URL: {self.api_url}")
+        logger.info(f"Headers: {json.dumps(headers, indent=2, ensure_ascii=False)}")
+        logger.info(f"Request Data: {json.dumps(data, indent=2, ensure_ascii=False)}")
+        
+        try:
+            response = requests.post(self.api_url, json=data, headers=headers)
+            logger.info(f"=== API 응답 정보 ===")
+            logger.info(f"상태 코드: {response.status_code}")
+            logger.info(f"응답 헤더: {dict(response.headers)}")
+            
+            if response.status_code != 200:
+                logger.error(f"API 오류 발생!")
+                logger.error(f"상태 코드: {response.status_code}")
+                logger.error(f"응답 내용: {response.text}")
+                response.raise_for_status()
+                
+            result = response.json()
+            logger.info(f"응답 데이터: {json.dumps(result, indent=2, ensure_ascii=False)}")
+            
+        except requests.exceptions.RequestException as e:
+            logger.error(f"=== API 요청 중 예외 발생 ===")
+            logger.error(f"예외 타입: {type(e).__name__}")
+            logger.error(f"예외 메시지: {str(e)}")
+            raise
+        except json.JSONDecodeError as e:
+            logger.error(f"=== JSON 파싱 오류 ===")
+            logger.error(f"응답 내용: {response.text}")
+            logger.error(f"JSON 오류: {str(e)}")
+            raise
+        except Exception as e:
+            logger.error(f"=== 예상치 못한 오류 ===")
+            logger.error(f"오류 타입: {type(e).__name__}")
+            logger.error(f"오류 메시지: {str(e)}")
+            raise
         # output 리스트 중 content.type이 'output_text'인 content.text만 로깅
+        logger.info(f"=== 응답 내용 분석 ===")
         output_list = result.get('output', [])
-        for output in output_list:
+        for i, output in enumerate(output_list):
+            logger.info(f"출력 {i+1}: {json.dumps(output, indent=2, ensure_ascii=False)}")
             contents = output.get('content', [])
             if isinstance(contents, list):
-                for content in contents:
+                for j, content in enumerate(contents):
                     if content.get('type') == 'output_text':
-                        print('[응답 output_text]', content.get('text'))
+                        logger.info(f'[응답 output_text {j+1}] {content.get("text")}')
+        
+        logger.info(f"=== 요청 완료 ===")
         return result
