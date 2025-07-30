@@ -39,6 +39,12 @@ class ResponsesClient:
         }
         data = { 
             "model": "gpt-4.1",
+            "store": "true",
+            "truncation_strategy": {
+                "type": "auto"  #컨텍스트 윈도우 초과 시 중간 메시지 제거. "disabled" 일 경우 초과 시 오류 발생
+            },
+            "max_prompt_tokens": 20000,
+            "max_completion_tokens": 512,
             "input": [
                 {
                     "role": "developer",
@@ -90,8 +96,22 @@ class ResponsesClient:
                 "require_approval": "never"
             }],
         }
+        # MCP 승인 시스템 처리
+        # 첫 번째 요청: 사용자가 "일정 추가해줘"라고 요청
+        #   data["input"] = [
+        #       {"role": "developer", "content": "당신은 스타벅스..."},
+        #       {"role": "user", "content": "오늘 9시부터 5시까지 근무 일정 추가해줘"}
+        #   ]
+        #
+        # 두 번째 요청: AI가 구글 캘린더 도구 사용을 위해 승인 요청
+        #   data["input"] = [{
+        #       "type": "mcp_approval_response",
+        #       "approve": True,
+        #       "approval_request_id": "some_id"
+        #   }]
         if previous_response_id and approval_request_id:
             data["previous_response_id"] = previous_response_id
+            # 승인 응답이 필요한 경우, 원래 사용자 메시지를 승인 응답으로 덮어씀
             data["input"] = [{
                 "type": "mcp_approval_response",
                 "approve": True,
