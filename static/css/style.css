@@ -181,6 +181,163 @@ body {
     color: #604c4c;
 }
 
+/* Markdown 스타일 */
+.markdown-content {
+    line-height: 1.6;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+    color: #0B421A;
+    margin: 1rem 0 0.5rem 0;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.markdown-content h1 {
+    font-size: 1.5rem;
+    border-bottom: 2px solid #EAC784;
+    padding-bottom: 0.5rem;
+}
+
+.markdown-content h2 {
+    font-size: 1.3rem;
+    border-bottom: 1px solid #EAC784;
+    padding-bottom: 0.3rem;
+}
+
+.markdown-content h3 {
+    font-size: 1.1rem;
+}
+
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+    font-size: 1rem;
+}
+
+.markdown-content p {
+    margin: 0.75rem 0;
+    line-height: 1.6;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+    margin: 0.75rem 0;
+    padding-left: 1.5rem;
+}
+
+.markdown-content li {
+    margin: 0.25rem 0;
+    line-height: 1.5;
+}
+
+.markdown-content blockquote {
+    border-left: 4px solid #EAC784;
+    margin: 1rem 0;
+    padding: 0.5rem 1rem;
+    background: rgba(234, 199, 132, 0.1);
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+}
+
+.markdown-content code {
+    background: rgba(11, 66, 26, 0.1);
+    color: #0B421A;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+.markdown-content pre {
+    background: rgba(54, 36, 21, 0.95);
+    color: #FFFCFC;
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 1rem 0;
+    border: 1px solid #EAC784;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.markdown-content pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+    border-radius: 0;
+}
+
+.markdown-content strong {
+    color: #0B421A;
+    font-weight: 600;
+}
+
+.markdown-content em {
+    color: #604c4c;
+    font-style: italic;
+}
+
+.markdown-content a {
+    color: #0B421A;
+    text-decoration: none;
+    border-bottom: 1px solid #EAC784;
+    transition: all 0.2s ease;
+}
+
+.markdown-content a:hover {
+    color: #EAC784;
+    border-bottom-color: #0B421A;
+}
+
+.markdown-content table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1rem 0;
+    background: rgba(255, 252, 252, 0.9);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #EAC784;
+}
+
+.markdown-content th,
+.markdown-content td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(234, 199, 132, 0.3);
+}
+
+.markdown-content th {
+    background: rgba(11, 66, 26, 0.1);
+    color: #0B421A;
+    font-weight: 600;
+}
+
+.markdown-content tr:hover {
+    background: rgba(234, 199, 132, 0.05);
+}
+
+.markdown-content hr {
+    border: none;
+    height: 2px;
+    background: linear-gradient(to right, transparent, #EAC784, transparent);
+    margin: 1.5rem 0;
+}
+
+.markdown-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 1rem 0;
+    border: 1px solid #EAC784;
+}
+
 /* 입력 영역 */
 .chat-input-container {
     padding: 1.25rem 1.5rem;
@@ -372,6 +529,7 @@ body {
 /* Tool 정보 스타일 */
 .tool-info {
     margin-top: 1rem;
+    margin-bottom: 1rem;
     background: rgba(234, 199, 132, 0.15);
     border: 1px solid #EAC784;
     border-radius: 12px;

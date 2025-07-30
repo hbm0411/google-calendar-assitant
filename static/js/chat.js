@@ -14,6 +14,25 @@ function formatTime() {
     });
 }
 
+// Markdown을 HTML로 변환하는 함수
+function parseMarkdown(text) {
+    if (!text) return '';
+    
+    // marked 옵션 설정
+    marked.setOptions({
+        breaks: true,
+        gfm: true,
+        sanitize: false
+    });
+    
+    try {
+        return marked.parse(text);
+    } catch (error) {
+        console.error('Markdown 파싱 오류:', error);
+        return text; // 파싱 실패시 원본 텍스트 반환
+    }
+}
+
 // 메시지를 채팅창에 추가하는 함수
 function addMessage(content, isUser = false, isError = false, toolInfo = null, responseId = null, previousResponseId = null) {
     const messageDiv = document.createElement('div');
@@ -57,6 +76,10 @@ function addMessage(content, isUser = false, isError = false, toolInfo = null, r
         `;
     }
     
+    // Assistant 메시지인 경우 Markdown 파싱
+    const processedContent = isUser ? content : parseMarkdown(content);
+    const messageTextClass = isUser ? 'message-text' : 'message-text markdown-content';
+    
     messageDiv.innerHTML = `
         <div class="message-avatar">
             ${isUser ? 
@@ -67,7 +90,7 @@ function addMessage(content, isUser = false, isError = false, toolInfo = null, r
         </div>
         <div class="message-content">
             ${previousIdInfo}
-            <div class="message-text">${content}</div>
+            <div class="${messageTextClass}">${processedContent}</div>
             ${toolSection}
             ${currentIdInfo}
             <div class="message-time">${formatTime()}</div>
