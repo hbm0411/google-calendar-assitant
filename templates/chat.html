@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>스타벅스 근무 일정 관리</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', path='/images/logo.png') }}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="{{ url_for('static', path='/css/style.css') }}" rel="stylesheet">
 </head>
@@ -11,9 +12,11 @@
     <div class="container">
         <header class="header">
             <div class="header-content">
-                <i class="fas fa-coffee"></i>
-                <h1>스타벅스 근무 일정 관리</h1>
-                <p>AI와 대화하며 스타벅스 근무 일정을 관리하세요</p>
+                <img src="{{ url_for('static', path='/images/logo.png') }}" alt="스타벅스 로고">
+                <div>
+                    <h1>스타벅스 근무 일정 관리</h1>
+                    <p>AI와 대화하며 스타벅스 근무 일정을 관리하세요</p>
+                </div>
             </div>
         </header>
 

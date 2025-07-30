@@ -7,13 +7,13 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: linear-gradient(135deg, #0b421a 0%, #362415 100%);
+    background: linear-gradient(135deg, #362415 0%, #0B421A 100%);
     min-height: 100vh;
-    color: #362415;
+    color: #FFFCFC;
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1000px;
     margin: 0 auto;
     height: 100vh;
     display: flex;
@@ -22,34 +22,41 @@ body {
 
 /* 헤더 스타일 */
 .header {
-    background: rgba(255, 252, 252, 0.95);
+    /* background: rgba(54, 36, 21, 0.95); */
+    /* border-bottom: 1px solid #EAC784; */
+    padding: 1.5rem 0;
+    /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); */
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(234, 199, 132, 0.3);
-    padding: 1rem 0;
-    box-shadow: 0 2px 20px rgba(11, 66, 26, 0.2);
 }
 
 .header-content {
     text-align: center;
     padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
 }
 
-.header-content i {
-    font-size: 2.5rem;
-    color: #0b421a;
-    margin-bottom: 0.5rem;
+.header-content img {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
 }
 
 .header-content h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #0b421a;
-    margin-bottom: 0.5rem;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #EAC784;
+    margin: 0;
 }
 
 .header-content p {
-    color: #604c4c;
-    font-size: 1rem;
+    color: #FFFCFC;
+    font-size: 0.95rem;
+    margin: 0;
+    font-weight: 400;
+    opacity: 0.8;
 }
 
 /* 채팅 컨테이너 */
@@ -57,21 +64,22 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    background: rgba(255, 252, 252, 0.95);
-    backdrop-filter: blur(10px);
+    background: rgba(54, 36, 21, 0.9);
     margin: 1rem;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(11, 66, 26, 0.15);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     overflow: hidden;
-    border: 1px solid rgba(234, 199, 132, 0.2);
+    border: 1px solid #EAC784;
+    backdrop-filter: blur(10px);
 }
 
 /* 메시지 영역 */
 .chat-messages {
     flex: 1;
-    padding: 2rem;
+    padding: 1.5rem;
     overflow-y: auto;
     scroll-behavior: smooth;
+    background: rgba(54, 36, 21, 0.7);
 }
 
 .chat-messages::-webkit-scrollbar {
@@ -91,7 +99,7 @@ body {
 /* 메시지 스타일 */
 .message {
     display: flex;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
     animation: fadeInUp 0.3s ease-out;
 }
 
@@ -100,8 +108,8 @@ body {
 }
 
 .message-avatar {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -109,6 +117,7 @@ body {
     margin: 0 0.75rem;
     flex-shrink: 0;
     overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .message-avatar img {
@@ -119,51 +128,65 @@ body {
 }
 
 .message.user .message-avatar {
-    background: linear-gradient(135deg, #0b421a, #362415);
+    background: #0B421A;
     color: white;
 }
 
 .message.assistant .message-avatar {
-    background: linear-gradient(135deg, #eac784, #604c4c);
+    background: #EAC784;
     color: #362415;
 }
 
 .message-content {
-    max-width: 70%;
-    background: linear-gradient(135deg, #fee, #eac784);
-    padding: 1rem 1.5rem;
-    border-radius: 20px;
-    box-shadow: 0 2px 10px rgba(11, 66, 26, 0.1);
+    max-width: 75%;
+    background: rgba(255, 252, 252, 0.95);
+    padding: 0.875rem 1.25rem;
+    border-radius: 18px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     position: relative;
-    border: 1px solid rgba(234, 199, 132, 0.1);
+    border: 1px solid #EAC784;
+    backdrop-filter: blur(5px);
 }
 
 .message.user .message-content {
-    background: linear-gradient(135deg, #0b421a, #362415);
+    background: #0B421A;
     color: white;
+    border-color: #0B421A;
+}
+
+.message.assistant .message-content {
+    background: rgba(255, 252, 252, 0.95);
+    color: #362415;
 }
 
 .message-text {
-    line-height: 1.6;
+    line-height: 1.5;
     margin-bottom: 0.5rem;
     word-wrap: break-word;
+    font-size: 0.95rem;
 }
 
 .message-time {
     font-size: 0.75rem;
     color: #604c4c;
     text-align: right;
+    opacity: 0.8;
 }
 
 .message.user .message-time {
     color: rgba(255, 255, 255, 0.8);
 }
 
+.message.assistant .message-time {
+    color: #604c4c;
+}
+
 /* 입력 영역 */
 .chat-input-container {
-    padding: 1.5rem 2rem;
-    background: rgba(255, 252, 252, 0.95);
-    border-top: 1px solid rgba(234, 199, 132, 0.2);
+    padding: 1.25rem 1.5rem;
+    background: rgba(54, 36, 21, 0.95);
+    border-top: 1px solid #EAC784;
+    backdrop-filter: blur(10px);
 }
 
 .message-form {
@@ -178,44 +201,53 @@ body {
 
 #messageInput {
     flex: 1;
-    padding: 1rem 1.5rem;
-    border: 2px solid #eac784;
-    border-radius: 25px;
-    font-size: 1rem;
+    padding: 0.875rem 1.25rem;
+    border: 2px solid #EAC784;
+    border-radius: 24px;
+    font-size: 0.95rem;
     outline: none;
-    transition: all 0.3s ease;
-    background: white;
+    transition: all 0.2s ease;
+    background: rgba(255, 252, 252, 0.95);
+    color: #362415;
+    backdrop-filter: blur(5px);
 }
 
 #messageInput:focus {
-    border-color: #0b421a;
-    box-shadow: 0 0 0 3px rgba(11, 66, 26, 0.1);
+    border-color: #EAC784;
+    box-shadow: 0 0 0 3px rgba(234, 199, 132, 0.2);
+}
+
+#messageInput::placeholder {
+    color: #604c4c;
 }
 
 #sendButton {
-    width: 50px;
-    height: 50px;
+    width: 44px;
+    height: 44px;
     border: none;
     border-radius: 50%;
-    background: linear-gradient(135deg, #0b421a, #362415);
-    color: white;
+    background: #EAC784;
+    color: #362415;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
-    font-size: 1.2rem;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 #sendButton:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(11, 66, 26, 0.4);
+    background: #FFFCFC;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 #sendButton:disabled {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
 }
 
 /* 로딩 인디케이터 */
@@ -224,14 +256,14 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(255, 252, 252, 0.95);
-    backdrop-filter: blur(10px);
+    background: #EAC784;
     padding: 2rem;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(11, 66, 26, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
     text-align: center;
     z-index: 1000;
-    border: 1px solid rgba(234, 199, 132, 0.3);
+    border: 1px solid rgba(54, 36, 21, 0.95);
+    backdrop-filter: blur(10px);
 }
 
 .loading-dots {
@@ -242,10 +274,10 @@ body {
 }
 
 .loading-dots span {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #0b421a, #eac784);
+    background: rgba(54, 36, 21, 0.95);
     animation: bounce 1.4s ease-in-out infinite both;
 }
 
@@ -253,8 +285,9 @@ body {
 .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
 
 .loading-indicator p {
-    color: #604c4c;
+    color: #FFFCFC;
     font-size: 0.9rem;
+    font-weight: 500;
 }
 
 /* 애니메이션 */
@@ -339,65 +372,118 @@ body {
 /* Tool 정보 스타일 */
 .tool-info {
     margin-top: 1rem;
-    padding: 1rem;
-    background: rgba(234, 199, 132, 0.1);
-    border: 1px solid rgba(234, 199, 132, 0.3);
-    border-radius: 10px;
-    font-size: 0.9rem;
+    background: rgba(234, 199, 132, 0.15);
+    border: 1px solid #EAC784;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    backdrop-filter: blur(5px);
+    overflow: hidden;
+    transition: all 0.3s ease;
 }
 
 .tool-header {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid rgba(234, 199, 132, 0.2);
+    padding: 1rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+.tool-header:hover {
+    background: rgba(234, 199, 132, 0.1);
 }
 
 .tool-header i {
-    color: #0b421a;
-    font-size: 1rem;
+    color: #0B421A;
+    font-size: 0.9rem;
+    transition: transform 0.3s ease;
+}
+
+.tool-header.expanded i {
+    transform: rotate(90deg);
 }
 
 .tool-name {
     font-weight: 600;
-    color: #0b421a;
-    font-size: 0.95rem;
+    color: #362415;
+    font-size: 0.9rem;
+    flex: 1;
+}
+
+.tool-toggle {
+    color: #604c4c;
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+.tool-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    padding: 0 1rem;
+}
+
+.tool-content.expanded {
+    max-height: 300px;
+    padding: 0 1rem 1rem 1rem;
+    border-top: 1px solid rgba(234, 199, 132, 0.3);
+    overflow-y: auto;
+}
+
+.tool-content.expanded::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tool-content.expanded::-webkit-scrollbar-track {
+    background: rgba(234, 199, 132, 0.1);
+    border-radius: 3px;
+}
+
+.tool-content.expanded::-webkit-scrollbar-thumb {
+    background: rgba(234, 199, 132, 0.5);
+    border-radius: 3px;
+}
+
+.tool-content.expanded::-webkit-scrollbar-thumb:hover {
+    background: rgba(234, 199, 132, 0.7);
 }
 
 .tool-details {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 1rem;
+    padding-top: 0.75rem;
 }
 
 .tool-arguments,
 .tool-output {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.5rem;
 }
 
 .tool-arguments strong,
 .tool-output strong {
-    color: #604c4c;
+    color: #0B421A;
     font-size: 0.85rem;
     font-weight: 600;
 }
 
 .tool-arguments pre,
 .tool-output pre {
-    background: rgba(255, 252, 252, 0.8);
-    padding: 0.5rem;
-    border-radius: 5px;
+    background: rgba(255, 252, 252, 0.9);
+    padding: 0.75rem;
+    border-radius: 8px;
     font-size: 0.8rem;
     line-height: 1.4;
     overflow-x: auto;
-    border: 1px solid rgba(11, 66, 26, 0.1);
+    border: 1px solid rgba(234, 199, 132, 0.3);
     margin: 0;
     white-space: pre-wrap;
     word-break: break-word;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
 }
 
 /* 사용자 메시지의 Tool 정보 스타일 */
@@ -425,4 +511,40 @@ body {
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.2);
     color: rgba(255, 255, 255, 0.9);
+}
+
+/* ID 정보 스타일 */
+.id-info {
+    font-size: 0.7rem;
+    padding: 0.375rem 0.75rem;
+    margin-bottom: 0.75rem;
+    border-radius: 6px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-weight: 500;
+    letter-spacing: 0.025em;
+}
+
+.previous-id {
+    background: rgba(96, 76, 76, 0.1);
+    color: #604c4c;
+    border-left: 3px solid #604c4c;
+}
+
+.current-id {
+    background: rgba(11, 66, 26, 0.1);
+    color: #0B421A;
+    border-left: 3px solid #0B421A;
+}
+
+/* 사용자 메시지의 ID 정보 스타일 */
+.message.user .previous-id {
+    background: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.9);
+    border-left-color: rgba(255, 255, 255, 0.4);
+}
+
+.message.user .current-id {
+    background: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 1);
+    border-left-color: rgba(255, 255, 255, 0.6);
 } 

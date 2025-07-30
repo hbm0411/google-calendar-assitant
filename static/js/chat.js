@@ -15,29 +15,42 @@ function formatTime() {
 }
 
 // 메시지를 채팅창에 추가하는 함수
-function addMessage(content, isUser = false, isError = false, toolInfo = null) {
+function addMessage(content, isUser = false, isError = false, toolInfo = null, responseId = null, previousResponseId = null) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
     if (isError) messageDiv.classList.add('error');
     
     const avatarIcon = isUser ? 'fas fa-user' : 'fas fa-robot';
     
+    // ID 정보 표시
+    let previousIdInfo = '';
+    let currentIdInfo = '';
+    
     let toolSection = '';
     if (toolInfo) {
+        if (previousResponseId) {
+            previousIdInfo += `<div class="id-info previous-id">이전 ID: ${previousResponseId}</div>`;
+        }
+        if (responseId) {
+            currentIdInfo += `<div class="id-info current-id">현재 ID: ${responseId}</div>`;
+        }
         toolSection = `
             <div class="tool-info">
-                <div class="tool-header">
-                    <i class="fas fa-tools"></i>
+                <div class="tool-header" onclick="toggleToolInfo(this)">
+                    <i class="fas fa-chevron-right"></i>
                     <span class="tool-name">${toolInfo.name}</span>
+                    <span class="tool-toggle">클릭하여 상세보기</span>
                 </div>
-                <div class="tool-details">
-                    <div class="tool-arguments">
-                        <strong>Arguments:</strong>
-                        <pre>${JSON.stringify(JSON.parse(toolInfo.arguments), null, 2)}</pre>
-                    </div>
-                    <div class="tool-output">
-                        <strong>Output:</strong>
-                        <pre>${JSON.stringify(JSON.parse(toolInfo.output), null, 2)}</pre>
+                <div class="tool-content">
+                    <div class="tool-details">
+                        <div class="tool-arguments">
+                            <strong>Arguments:</strong>
+                            <pre>${JSON.stringify(JSON.parse(toolInfo.arguments), null, 2)}</pre>
+                        </div>
+                        <div class="tool-output">
+                            <strong>Output:</strong>
+                            <pre>${JSON.stringify(JSON.parse(toolInfo.output), null, 2)}</pre>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -53,8 +66,10 @@ function addMessage(content, isUser = false, isError = false, toolInfo = null) {
             }
         </div>
         <div class="message-content">
+            ${previousIdInfo}
             <div class="message-text">${content}</div>
             ${toolSection}
+            ${currentIdInfo}
             <div class="message-time">${formatTime()}</div>
         </div>
     `;
@@ -68,6 +83,25 @@ function scrollToBottom() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
+// Tool 정보 토글 함수
+function toggleToolInfo(headerElement) {
+    const toolInfo = headerElement.parentElement;
+    const toolContent = toolInfo.querySelector('.tool-content');
+    const toggleText = headerElement.querySelector('.tool-toggle');
+    
+    if (toolContent.classList.contains('expanded')) {
+        // 접기
+        toolContent.classList.remove('expanded');
+        headerElement.classList.remove('expanded');
+        toggleText.textContent = '클릭하여 상세보기';
+    } else {
+        // 펼치기
+        toolContent.classList.add('expanded');
+        headerElement.classList.add('expanded');
+        toggleText.textContent = '클릭하여 접기';
+    }
+}
+
 // 로딩 상태를 토글하는 함수
 function toggleLoading(show) {
     loadingIndicator.style.display = show ? 'block' : 'none';
@@ -75,12 +109,20 @@ function toggleLoading(show) {
     messageInput.disabled = show;
 }
 
+// 전역 변수로 response_id 추적
+let currentResponseId = null;
+
 // API 요청을 보내는 함수
 async function sendMessage(message) {
     try {
         const formData = new FormData();
         formData.append('message', message);
         formData.append('user_id', 'test_user');
+        
+        // 이전 response_id가 있으면 추가
+        if (currentResponseId) {
+            formData.append('previous_response_id', currentResponseId);
+        }
         
         const response = await fetch('/send_message', {
             method: 'POST',
@@ -97,6 +139,7 @@ async function sendMessage(message) {
             // AI 응답 처리
             let responseText = '응답을 받았습니다.';
             let toolInfo = null;
+            let newResponseId = null;
             
             if (data.response && data.response.output) {
                 const outputs = data.response.output;
@@ -119,6 +162,12 @@ async function sendMessage(message) {
                         responseText = textContent.text;
                     }
                 }
+                
+                // response_id 찾기
+                if (data.response.id) {
+                    newResponseId = data.response.id;
+                    currentResponseId = newResponseId;
+                }
             } else if (data.response && data.response.choices && data.response.choices.length > 0) {
                 const choice = data.response.choices[0];
                 if (choice.message && choice.message.content) {
@@ -132,7 +181,13 @@ async function sendMessage(message) {
                 responseText = data.response;
             }
             
-            addMessage(responseText, false, false, toolInfo);
+            // Tool 정보가 있으면 별도 메시지로 표시
+            if (toolInfo) {
+                addMessage(`Tool 실행: ${toolInfo.name}`, false, false, toolInfo, newResponseId, currentResponseId);
+            }
+            
+            // LLM 응답을 별도 메시지로 표시
+            addMessage(responseText, false, false, null, newResponseId, currentResponseId);
         } else {
             addMessage(`오류가 발생했습니다: ${data.error}`, false, true);
         }
