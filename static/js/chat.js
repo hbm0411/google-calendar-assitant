@@ -41,6 +41,20 @@ function parseMarkdown(text) {
     }
 }
 
+// Tool output을 포맷팅하는 함수
+function formatToolOutput(output) {
+    if (!output) return '';
+    
+    try {
+        // JSON 파싱 시도
+        const parsed = JSON.parse(output);
+        return JSON.stringify(parsed, null, 2);
+    } catch (error) {
+        // JSON 파싱 실패 시 일반 텍스트로 반환
+        return output;
+    }
+}
+
 // 메시지를 채팅창에 추가하는 함수
 function addMessage(content, isUser = false, isError = false, toolInfo = null, responseId = null, previousResponseId = null, attachedImage = null) {
     const messageDiv = document.createElement('div');
@@ -82,11 +96,11 @@ function addMessage(content, isUser = false, isError = false, toolInfo = null, r
                                 <div class="tool-details">
                                     <div class="tool-arguments">
                                         <strong>Arguments:</strong>
-                                        <pre>${JSON.stringify(JSON.parse(tool.arguments), null, 2)}</pre>
+                                        <pre>${formatToolOutput(tool.arguments)}</pre>
                                     </div>
                                     <div class="tool-output">
                                         <strong>Output:</strong>
-                                        <pre>${JSON.stringify(JSON.parse(tool.output), null, 2)}</pre>
+                                        <pre>${formatToolOutput(tool.output)}</pre>
                                     </div>
                                 </div>
                             </div>

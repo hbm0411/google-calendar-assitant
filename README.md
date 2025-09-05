@@ -11,11 +11,16 @@
 - 아름다운 모던 UI/UX
 
 ## 설치 방법
+
+### 로컬 개발 환경
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
+
+### 서버 배포
+무료로 서버에 배포하려면 [DEPLOYMENT.md](DEPLOYMENT.md)를 참고하세요.
 
 ## 환경 변수 및 .env 파일 설정
 Google 서비스 계정 키 파일 경로를 .env 파일에 지정해야 합니다.
@@ -65,19 +70,30 @@ python app/main.py
 ```
 google-calendar-assistant/
 ├── app/
-│   ├── main.py              # FastAPI 웹 서버
-│   ├── responses_client.py  # Responses API 연동 클라이언트
-│   └── session_manager.py   # 세션 관리 모듈
+│   ├── main.py                 # FastAPI 애플리케이션 진입점
+│   ├── config.py               # 애플리케이션 설정 관리
+│   ├── logger.py               # 로깅 설정 및 관리
+│   ├── responses_client.py     # Responses API 연동 클라이언트
+│   ├── session_manager.py      # 세션 관리 모듈
+│   ├── routers/                # API 라우터
+│   │   ├── __init__.py
+│   │   ├── chat_router.py      # 채팅 관련 라우터
+│   │   └── health_router.py    # 헬스체크 라우터
+│   └── services/               # 비즈니스 로직 서비스
+│       ├── __init__.py
+│       ├── file_upload_service.py  # 파일 업로드 서비스
+│       └── message_service.py      # 메시지 처리 서비스
 ├── templates/
-│   └── chat.html           # 채팅 인터페이스 템플릿
+│   └── chat.html              # 채팅 인터페이스 템플릿
 ├── static/
 │   ├── css/
-│   │   └── style.css       # 스타일시트
+│   │   └── style.css          # 스타일시트
 │   └── js/
-│       └── chat.js         # 채팅 기능 JavaScript
-├── run_server.py           # 서버 실행 스크립트
-├── requirements.txt        # Python 의존성
-└── README.md              # 프로젝트 문서
+│       └── chat.js            # 채팅 기능 JavaScript
+├── logs/                      # 로그 파일 디렉토리
+├── run_server.py              # 서버 실행 스크립트
+├── requirements.txt           # Python 의존성
+└── README.md                 # 프로젝트 문서
 ```
 
 ## 기술 스택
@@ -86,6 +102,8 @@ google-calendar-assistant/
 - **UI Framework**: Custom CSS (모던 디자인)
 - **Icons**: Font Awesome
 - **API**: OpenAI Responses API, Google Calendar API
+- **Architecture**: Clean Architecture (라우터-서비스-클라이언트 패턴)
+- **Logging**: Rotating File Handler with structured logging
 
 ## 3교대 근무 일정 규칙
 - **오픈**: 06:00 ~ 08:00 시간대
