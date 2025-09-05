@@ -242,12 +242,17 @@ function showImagePreview(file) {
     reader.readAsDataURL(file);
 }
 
-// 이미지 제거
-removeImage.addEventListener('click', () => {
+// 이미지 미리보기 초기화 함수
+function clearImagePreview() {
     selectedImageFile = null;
     imagePreview.style.display = 'none';
     imageInput.value = '';
     previewImage.src = '';
+}
+
+// 이미지 제거
+removeImage.addEventListener('click', () => {
+    clearImagePreview();
 });
 
 // 이미지 붙여넣기 이벤트 핸들러
@@ -455,6 +460,7 @@ messageForm.addEventListener('submit', async (e) => {
     
     // 입력창 초기화
     messageInput.value = '';
+    clearImagePreview();
     
     // 로딩 상태 시작
     toggleLoading(true);
@@ -464,15 +470,6 @@ messageForm.addEventListener('submit', async (e) => {
     } finally {
         // 로딩 상태 종료
         toggleLoading(false);
-        
-        // 메시지 전송 후 이미지 초기화
-        if (selectedImageFile) {
-            selectedImageFile = null;
-            imagePreview.style.display = 'none';
-            imageInput.value = '';
-            previewImage.src = '';
-        }
-        
         messageInput.focus();
     }
 });
